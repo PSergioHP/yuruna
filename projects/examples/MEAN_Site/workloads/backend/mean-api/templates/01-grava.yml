@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.installName }}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.selectorLabel }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.selectorLabel }}
+    spec:
+      containers:
+      - name: grava
+        image: {{ .Values.registryLocation }}/{{ .Values.containerPrefix }}/backend:latest
+        imagePullPolicy: Always
+        ports:
+        - name: port8088
+          containerPort: 10010
+        resources:
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+      imagePullSecrets:
+        - name: registry-credential
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.installName }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.selectorLabel }}
+spec:
+  type: LoadBalancer
+  ports:
+    - name: port8088
+      port: {{ .Values.servicePort }}
+      targetPort: 10010
+  selector:
+    app: {{ .Values.selectorLabel }}
